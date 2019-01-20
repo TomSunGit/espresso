@@ -31,12 +31,10 @@ function createButton(arg: "on" | "off", title: string): HTMLButtonElement {
 }
 
 async function warmUp(): Promise<void> {
-    const status = document.getElementById("status")!;
-    status.textContent = "Aufwärmen...";
     try {
         await fetch(`${serviceUrl}api/switch`);
-        status.textContent = "Aufgewärmt";
     } catch {
+        const status = document.getElementById("status")!;
         status.textContent = "Fehler beim Aufwärmen";
     }
 }

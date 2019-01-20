@@ -20,10 +20,9 @@ describe("e2etest", () => {
                 "https://espressopitest.z6.web.core.windows.net/";
             await driver.get(testUrl);
             const status = driver.findElement(By.css("#status"));
-            await driver.wait(until.elementTextIs(status, "Aufgewärmt"), 10000);
             await driver.findElement(By.tagName("Button"))
                 .click();
-            await driver.wait(async () => await status.getText() !== "Schalte Maschine an");
+            await driver.wait(until.elementTextMatches(status, /.+/), 10000);
             const statusText = await status.getText();
             expect(statusText)
                 .toBe("Maschine an");

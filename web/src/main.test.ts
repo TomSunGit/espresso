@@ -76,11 +76,6 @@ describe("main", () => {
         test("warms the function app on page load", async () => {
             init();
             expect(window.fetch).toHaveBeenCalledWith(expect.stringMatching(".azurewebsites.net/api/switch*$"));
-            expect((document.getElementById("status") as HTMLSpanElement).textContent).toBe("Aufwärmen...");
-
-            await immediate();
-
-            expect((document.getElementById("status") as HTMLSpanElement).textContent).toBe("Aufgewärmt");
         });
 
         test("shows an error if warm up fails", async () => {
