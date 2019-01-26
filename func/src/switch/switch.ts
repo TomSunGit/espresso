@@ -22,8 +22,29 @@ async function getConnectionString(): Promise<string> {
 }
 
 export async function run(context: HttpContext, req: IFunctionRequest): Promise<void> {
-    context.log(`Headers ${Object.keys(req.headers).join(", ")}`);
-    // Headers accept, accept-encoding, accept-language, cache-control, connection, content-length, host, max-forwards, pragma, referer, user-agent, x-zumo-auth, request-id, origin, x-waws-unencoded-url, client-ip, x-arr-log-id, disguised-host, x-site-deployment-id, was-default-hostname, x-original-url, x-forwarded-for, x-arr-ssl, x-forwarded-proto, x-ms-client-principal-name, x-ms-client-principal-id, x-ms-client-principal-idp, x-ms-client-principal, x-ms-token-google-id-token
+    if (!req.headers["x-ms-client-principal-name"]) {
+        context.res = {
+            body: `no auth info found`,
+            status: 401,
+        };
+
+        return;
+    }
+    if (process.env.ALLOWED_USERS) {
+        if (process.env.ALLOWED_USERS.split(",").includes(req.headers["x-ms-client-principal-name"])) {
+            context.log(`Allow ${req.headers["x-ms-client-principal-name"]} to access`);
+        } else {
+            context.res = {
+                body: `${req.headers["x-ms-client-principal-name"]} has no permissions to access`,
+                status: 401,
+            };
+
+            return;
+        }
+    } else {
+        context.log("No Users configured. Allow everybody. ");
+    }
+
     if (req.query.on === undefined && req.query.off === undefined) {
         context.res = {
             body: "missing on or off query string",
