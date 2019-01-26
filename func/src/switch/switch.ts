@@ -22,6 +22,8 @@ async function getConnectionString(): Promise<string> {
 }
 
 export async function run(context: HttpContext, req: IFunctionRequest): Promise<void> {
+    context.log(`Headers ${Object.keys(req.headers).join(", ")}`);
+    // Headers accept, accept-encoding, accept-language, cache-control, connection, content-length, host, max-forwards, pragma, referer, user-agent, x-zumo-auth, request-id, origin, x-waws-unencoded-url, client-ip, x-arr-log-id, disguised-host, x-site-deployment-id, was-default-hostname, x-original-url, x-forwarded-for, x-arr-ssl, x-forwarded-proto, x-ms-client-principal-name, x-ms-client-principal-id, x-ms-client-principal-idp, x-ms-client-principal, x-ms-token-google-id-token
     if (req.query.on === undefined && req.query.off === undefined) {
         context.res = {
             body: "missing on or off query string",

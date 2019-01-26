@@ -24,11 +24,28 @@ module.exports = {
             inject: false,
             template: require('html-webpack-template'),
             title: 'Espresso',
+            meta: [
+                {
+                    name: "google-signin-scope",
+                    content: "profile email"
+                },
+                {
+                    name: "google-signin-client_id",
+                    content: "416677073471-cmp44c8ua8bqgv71tjuo8g0tqfb5mh8j.apps.googleusercontent.com"
+                }
+            ],
             window: {
                 instrumentationKey: '<%INSTRUMENTATION_KEY%>',
                 functionsCode: '<%FUNCTIONS_CODE%>',
                 functionsHostname: '<%FUNCTIONS_HOSTNAME%>'
-            }
+            },
+            scripts: [
+                {
+                    src:"https://apis.google.com/js/platform.js?onload=renderButton",
+                    async: "true",
+                    defer: "true"
+                }
+            ]
         }),
     ]
 };
