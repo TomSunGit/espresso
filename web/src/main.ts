@@ -8,8 +8,9 @@ declare const functionsCode: string;
 declare const functionsHostname: string;
 
 declare global {
+// tslint:disable-next-line: interface-name
     interface Window {
-        onGoogleLogin?: Function;
+        onGoogleLogin?: (googleUser: any) => void;
    }
 }
 
@@ -27,7 +28,8 @@ function createButton(arg: "on" | "off", title: string): HTMLButtonElement {
         const status = document.getElementById("status") as HTMLSpanElement;
         status.textContent = `Schalte Maschine ${title.toLocaleLowerCase()}`;
         try {
-            const res = await fetch(`${serviceUrl}api/switch?${arg}=1&code=${functionsCode}`, {method: "POST", headers: {"X-ZUMO-AUTH": easyAuthInfoToken}});
+            const res = await fetch(`${serviceUrl}api/switch?${arg}=1&code=${functionsCode}`,
+                {method: "POST", headers: {"X-ZUMO-AUTH": easyAuthInfoToken}});
             status.textContent = res.ok ?
                 `Maschine ${title.toLocaleLowerCase()}` :
                 `Fehler vom Service: ${await res.text()}`;
@@ -62,18 +64,12 @@ function component() {
     return div;
 }
 
-async function translateAuthToken(provider: string, body: {id_token: string}) {
+async function translateAuthToken(idToken: string) {
     // Call function app to translate provider token to easyAuthInfo
-    const res = await fetch(`${serviceUrl}.auth/login/${provider}`, {method: "POST", body: JSON.stringify(body)})
+    const res = await fetch(`${serviceUrl}.auth/login/google`,
+        {method: "POST", body: JSON.stringify({id_token: idToken})});
     const resBody = await res.json();
-    console.log(resBody);
     easyAuthInfoToken = resBody.authenticationToken;
-}
-
-async function callAuthMe() {
-    const res = await fetch(`${serviceUrl}.auth/me`, {headers: {"X-ZUMO-AUTH": easyAuthInfoToken}});
-    const resBody = await res.json()
-    console.log(resBody);
 }
 
 export function init() {
@@ -81,11 +77,9 @@ export function init() {
     googlesignin.className = "g-signin2";
     googlesignin.dataset.onsuccess = "onGoogleLogin";
     window.onGoogleLogin = async (googleUser: any)  => {
-        console.log(googleUser.getAuthResponse());
-        const id_token = googleUser.getAuthResponse().id_token;
-        await translateAuthToken("google", { id_token });
-        await callAuthMe();
-    }
+        const idToken = googleUser.getAuthResponse().id_token;
+        await translateAuthToken(idToken);
+    };
     document.body.appendChild(googlesignin);
     document.body.appendChild(component());
     warmUp();
