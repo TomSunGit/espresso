@@ -3,6 +3,7 @@ import { Client, DeviceMethodParams } from "azure-iothub";
 import { KeyVaultClient } from "azure-keyvault";
 import * as msRestAzure from "ms-rest-azure";
 import { promisify } from "util";
+import { checkIfUserIsAllow } from "./auth";
 
 const deviceId = "espressoPi";
 
@@ -22,29 +23,14 @@ async function getConnectionString(): Promise<string> {
 }
 
 export async function run(context: HttpContext, req: IFunctionRequest): Promise<void> {
-    if (!req.headers["x-ms-client-principal-name"]) {
-        context.res = {
-            body: `no auth info found`,
-            status: 401,
-        };
-
+    const authRes = checkIfUserIsAllow(
+        req.headers["x-ms-client-principal-name"],
+        process.env.ALLOWED_USERS,
+        context.log);
+    if (authRes) {
+        context.res = authRes;
         return;
     }
-    if (process.env.ALLOWED_USERS) {
-        if (process.env.ALLOWED_USERS.split(",").includes(req.headers["x-ms-client-principal-name"])) {
-            context.log(`Allow ${req.headers["x-ms-client-principal-name"]} to access`);
-        } else {
-            context.res = {
-                body: `${req.headers["x-ms-client-principal-name"]} has no permissions to access`,
-                status: 401,
-            };
-
-            return;
-        }
-    } else {
-        context.log("No Users configured. Allow everybody. ");
-    }
-
     if (req.query.on === undefined && req.query.off === undefined) {
         context.res = {
             body: "missing on or off query string",

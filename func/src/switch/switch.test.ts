@@ -4,6 +4,9 @@ import { KeyVaultClient } from "azure-keyvault";
 import * as msRestAzure from "ms-rest-azure";
 import { run } from "./switch";
 
+import { checkIfUserIsAllow } from "./auth";
+
+jest.mock("./auth");
 jest.mock("azure-keyvault");
 jest.mock("ms-rest-azure");
 jest.mock("azure-iothub");
@@ -28,6 +31,15 @@ const context: HttpContext = {
   res: {status: 0, body: ""},
 };
 
+const req: IFunctionRequest = {
+  body: {},
+  headers: {},
+  method: "POST",
+  originalUrl: "https://example,com",
+  query: {off: ""},
+  rawbody: "",
+}
+
 const getSecret = jest.fn(() => Promise.resolve({value: "abc"}));
 (KeyVaultClient as jest.Mock<KeyVaultClient>).mockImplementation(() => ({
   getSecret,
@@ -40,7 +52,7 @@ Client.fromConnectionString = jest.fn(() => ({
 
 test("get connection string from keyvault", async () => {
   process.env.KEYVAULT_URI = "https://somevault.vault.azure.net/";
-  await run(context, {method: "POST", query: {off: ""}} as any);
+  await run(context, req);
 
   expect(msRestAzure.interactiveLogin)
     .toHaveBeenCalled();
@@ -51,12 +63,12 @@ test("get connection string from keyvault", async () => {
 test("throws if no keyvault value is found", async () => {
   getSecret.mockImplementationOnce(async () => ({}));
 
-  await expect(run(context, {method: "POST", query: {off: ""}} as any)).rejects
+  await expect(run(context, req)).rejects
     .toEqual(new Error("Found no connection string in key vault"));
 });
 
 test("send off to function switches device off", async () => {
-  await run(context, {method: "POST", query: {off: ""} } as any);
+  await run(context, req);
 
   expect(invokeDeviceMethod)
     .toHaveBeenCalledWith("espressoPi", {methodName: "onSwitchOff"}, expect.anything());
@@ -65,7 +77,7 @@ test("send off to function switches device off", async () => {
 });
 
 test("send on to function switches device on", async () => {
-  await run(context, {method: "POST", query: {on: ""} } as any);
+  await run(context, {...req, query: {on: ""} });
 
   expect(invokeDeviceMethod)
     .toHaveBeenCalledWith("espressoPi", {methodName: "onSwitchOn"}, expect.anything());
@@ -74,7 +86,7 @@ test("send on to function switches device on", async () => {
 });
 
 test("send no parameter returns error", async () => {
-  await run(context, {method: "POST", query: {} } as any);
+  await run(context, {...req, query: {} });
 
   expect(context.res.status)
     .toBe(404);
@@ -83,7 +95,7 @@ test("send no parameter returns error", async () => {
 test("log error invokation error", async () => {
   invokeDeviceMethod.mockImplementationOnce((a, b, cb) => cb(new Error("Some Invokation Error")));
 
-  await run(context, {method: "POST", query: {off: ""} } as any);
+  await run(context, req);
 
   expect(context.log.error)
     .toHaveBeenCalledWith(
@@ -93,10 +105,29 @@ test("log error invokation error", async () => {
 test("returns error on Invokation Error", async () => {
   invokeDeviceMethod.mockImplementationOnce((a, b, cb) => cb(new Error("Some Invokation Error")));
 
-  await run(context, {method: "POST", query: {off: ""} } as any);
+  await run(context, req);
 
   expect(context.res.status)
     .toBe(500);
   expect(context.res.body)
     .toBe("Failed to invoke method");
+});
+
+test("checks for auth", async () => {
+  await run(context, req);
+
+  expect(checkIfUserIsAllow)
+    .toHaveBeenCalled();
+  expect(context.res.status)
+    .toBe(200);
+});
+
+test("return 401 if auth fails", async () => {
+  (checkIfUserIsAllow as any).mockImplementationOnce(() => ({status: 401}));
+  await run(context, req);
+
+  expect(checkIfUserIsAllow)
+    .toHaveBeenCalled();
+  expect(context.res.status)
+    .toBe(401);
 });
