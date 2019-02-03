@@ -1,8 +1,12 @@
 import { KeyVaultClient } from "@azure/keyvault";
 import { interactiveLogin, loginWithAppServiceMSI } from "@azure/ms-rest-nodeauth";
+import * as appInsights from "applicationinsights";
 import { HttpContext, IFunctionRequest } from "azure-functions-typescript";
 import { Client, DeviceMethodParams } from "azure-iothub";
 import { promisify } from "util";
+
+appInsights.setup();
+const appClient = appInsights.defaultClient;
 
 const deviceId = "espressoPi";
 
@@ -39,9 +43,24 @@ export async function run(context: HttpContext, req: IFunctionRequest): Promise<
 
     const methodParams = {
         methodName: req.query.off !== undefined ? "onSwitchOff" : "onSwitchOn",
+        payload: {
+            operationId: context.invocationId,
+        },
     };
     try {
+        const startTime = Date.now();
         const result = await invokeDeviceMethod(deviceId, methodParams);
+        const duration = Date.now() - startTime;
+        appClient.trackDependency({
+            data: JSON.stringify(methodParams),
+            dependencyTypeName: "switch",
+            duration,
+            name: methodParams.methodName,
+            resultCode: result.status,
+            success: true,
+            tagOverrides: {"ai.operation.id": context.invocationId},
+            target: "mqtts://espessopi",
+        });
 
         context.res = {
             body: result.payload,

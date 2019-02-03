@@ -1,11 +1,13 @@
 import { KeyVaultClient } from "@azure/keyvault";
 import * as msRestAzure from "@azure/ms-rest-nodeauth";
+import * as appInsights from "applicationinsights";
 import { HttpContext, IFunctionRequest } from "azure-functions-typescript";
 import { Client } from "azure-iothub";
 import { run } from "./switch";
 
 jest.mock("@azure/keyvault");
 jest.mock("@azure/ms-rest-nodeauth");
+jest.mock("applicationinsights", () => ({defaultClient: {trackDependency: jest.fn()}, setup: jest.fn()}));
 jest.mock("azure-iothub");
 
 // tslint:disable-next-line:no-empty
@@ -59,7 +61,7 @@ test("send off to function switches device off", async () => {
   await run(context, {method: "POST", query: {off: ""} } as any);
 
   expect(invokeDeviceMethod)
-    .toHaveBeenCalledWith("espressoPi", {methodName: "onSwitchOff"}, expect.anything());
+    .toHaveBeenCalledWith("espressoPi", expect.objectContaining({methodName: "onSwitchOff"}), expect.anything());
   expect(context.res.status)
     .toBe(200);
 });
@@ -68,7 +70,7 @@ test("send on to function switches device on", async () => {
   await run(context, {method: "POST", query: {on: ""} } as any);
 
   expect(invokeDeviceMethod)
-    .toHaveBeenCalledWith("espressoPi", {methodName: "onSwitchOn"}, expect.anything());
+    .toHaveBeenCalledWith("espressoPi", expect.objectContaining({methodName: "onSwitchOn"}), expect.anything());
   expect(context.res.status)
     .toBe(200);
 });
