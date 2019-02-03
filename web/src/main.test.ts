@@ -33,7 +33,9 @@ describe("main", () => {
             await immediate();
 
             expect(window.fetch)
-                .toHaveBeenCalledWith(expect.stringContaining("azurewebsites.net/api/switch?on"), {method: "POST"});
+                .toHaveBeenCalledWith(
+                    expect.stringContaining("azurewebsites.net/api/switch?on"),
+                    expect.objectContaining({method: "POST"}));
             expect((document.getElementById("status") as HTMLSpanElement).textContent).toBe("Maschine an");
         });
 
@@ -43,7 +45,9 @@ describe("main", () => {
             await immediate();
 
             expect(window.fetch)
-                .toHaveBeenCalledWith(expect.stringContaining("azurewebsites.net/api/switch?off"), {method: "POST"});
+                .toHaveBeenCalledWith(
+                    expect.stringContaining("azurewebsites.net/api/switch?off"),
+                    expect.objectContaining({method: "POST"}));
             expect((document.getElementById("status") as HTMLSpanElement).textContent).toBe("Maschine aus");
         });
 
