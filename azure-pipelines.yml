@@ -49,6 +49,7 @@ jobs:
   steps:
   - bash: |
      set -e
+     npm install -g azure-functions-core-tools
      npm install
      npm run build:production
      npm run test:ci
