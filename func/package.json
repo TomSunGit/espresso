@@ -10,6 +10,7 @@
     "start": "npm run start:host & npm run watch",
     "build:production": "npm run prestart && npm prune --production",
     "test": "jest",
+    "test:ci": "jest --ci --reporters=default --reporters=jest-junit --coverage",
     "lint": "eslint --ext .ts,.js ."
   },
   "author": "Stefan Schoof",
