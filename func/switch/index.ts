@@ -1,10 +1,10 @@
-import { HttpContext, IFunctionRequest } from "azure-functions-typescript";
+import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import { Client, DeviceMethodParams } from "azure-iothub";
 import { promisify } from "util";
 
 const deviceId = "espressoPi";
 
-export async function run(context: HttpContext, req: IFunctionRequest): Promise<void> {
+const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     if (req.query.on === undefined && req.query.off === undefined) {
         context.res = {
             body: "missing on or off query string",
@@ -41,4 +41,21 @@ export async function run(context: HttpContext, req: IFunctionRequest): Promise<
             status: 500,
         };
     }
-}
+    // context.log('HTTP trigger function processed a request.');
+    // const name = (req.query.name || (req.body && req.body.name));
+
+    // if (name) {
+    //     context.res = {
+    //         // status: 200, /* Defaults to 200 */
+    //         body: "Hello " + (req.query.name || req.body.name)
+    //     };
+    // }
+    // else {
+    //     context.res = {
+    //         status: 400,
+    //         body: "Please pass a name on the query string or in the request body"
+    //     };
+    // }
+};
+
+export default httpTrigger;

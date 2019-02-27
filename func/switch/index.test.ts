@@ -1,23 +1,23 @@
-import { HttpContext } from "azure-functions-typescript";
+import { Context } from "@azure/functions";
 import { Client } from "azure-iothub";
-import { run } from "./switch";
+import { default as run} from "./index";
 
 jest.mock("azure-iothub");
 
-const log = jest.fn() as unknown as HttpContext["log"];
+const log = jest.fn() as unknown as Context["log"];
 log.warn = jest.fn();
 log.error = jest.fn();
 log.info = jest.fn();
 log.verbose = jest.fn();
 
-const context: HttpContext = {
+const context: Context = {
     bindingData: {},
     bindings: {},
     done: jest.fn(),
     invocationId: "id",
     log,
     res: {status: 0, body: ""},
-};
+} as any;
 
 const invokeDeviceMethod = jest.fn((a, b, cb) => cb(undefined, {status: 200, paylod: "Hello"}));
 Client.fromConnectionString = jest.fn(() => ({
@@ -38,6 +38,9 @@ test("throws if no iothub connection string is found", async () => {
 test("send off to function switches device off", async () => {
     await run(context, {method: "POST", query: {off: ""} } as any);
 
+    if (!context.res) {
+        throw new Error("result is undefined");
+    }
     expect(invokeDeviceMethod)
         .toHaveBeenCalledWith("espressoPi", {methodName: "onSwitchOff"}, expect.anything());
     expect(context.res.status)
@@ -47,6 +50,9 @@ test("send off to function switches device off", async () => {
 test("send on to function switches device on", async () => {
     await run(context, {method: "POST", query: {on: ""} } as any);
 
+    if (!context.res) {
+        throw new Error("result is undefined");
+    }
     expect(invokeDeviceMethod)
         .toHaveBeenCalledWith("espressoPi", {methodName: "onSwitchOn"}, expect.anything());
     expect(context.res.status)
@@ -56,6 +62,9 @@ test("send on to function switches device on", async () => {
 test("send no parameter returns error", async () => {
     await run(context, {method: "POST", query: {} } as any);
 
+    if (!context.res) {
+        throw new Error("result is undefined");
+    }
     expect(context.res.status)
         .toBe(404);
 });
@@ -75,6 +84,9 @@ test("returns error on Invokation Error", async () => {
 
     await run(context, {method: "POST", query: {off: ""} } as any);
 
+    if (!context.res) {
+        throw new Error("result is undefined");
+    }
     expect(context.res.status)
         .toBe(500);
     expect(context.res.body)

@@ -50,7 +50,7 @@ jobs:
   - bash: |
      set -e
      npm install
-     npm run build
+     npm run build:production
      npm run test:ci
      npm run lint
     workingDirectory: func
