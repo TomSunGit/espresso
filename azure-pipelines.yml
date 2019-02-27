@@ -50,9 +50,9 @@ jobs:
   - bash: |
      set -e
      npm install
-     npm run build:production
      npm run test:ci
      npm run lint
+     npm run build:production
     workingDirectory: func
     displayName: 'Build'
 
