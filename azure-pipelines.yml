@@ -70,7 +70,7 @@ jobs:
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: func'
     inputs:
-      PathtoPublish: func/dist
+      PathtoPublish: func
       ArtifactName: func
 
 - job: web
