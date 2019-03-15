@@ -3,7 +3,7 @@ import { ApplicationInsights } from "@microsoft/applicationinsights-web";
 declare var process: {
     env: {
         NODE_ENV: string;
-    },
+    };
 };
 
 declare global {
@@ -18,9 +18,9 @@ export function init(functionsHostname: string, functionsCode: string, instrumen
 
     const appInsights = new ApplicationInsights({
         config: {
-           disableFetchTracking: false,
-           enableCorsCorrelation: true,
-           instrumentationKey,
+            disableFetchTracking: false,
+            enableCorsCorrelation: true,
+            instrumentationKey,
         },
     });
     appInsights.loadAppInsights();
