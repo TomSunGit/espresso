@@ -18,7 +18,7 @@
   "dependencies": {
     "applicationinsights": "^1.2.0",
     "azure-iot-common": "^1.9.4",
-    "azure-iot-device": "^1.9.4",
+    "azure-iot-device": "^1.9.9",
     "azure-iot-device-mqtt": "^1.9.4",
     "jest-junit": "^6.3.0"
   },
